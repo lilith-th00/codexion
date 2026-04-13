@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <pthread.h>
 
 typedef struct data_s
 {
@@ -25,17 +26,21 @@ typedef struct dongle_s
     //mutex_dongle
 }dongle_t;
 
-typedef struct s_coder
+typedef struct coder_s
 {
     int     id;
     pthread_t   thread_id;
     dongle_t *left_d;
     dongle_t *right_d;
     //
-} t_coder;
+} coder_t;
 
 int ft_pars_args(int ac, char **av);
 void store_values(char **av, data_t *data);
+int create_coders(coder_t *coders, int n);
+int create_dongles(dongle_t *dongles, int n);
+void create_thread_join(coder_t *coders, int n);
+
 
 
 

@@ -1,23 +1,23 @@
 #include "codexion.h"
 
-void create_thread_join(coder_t **coders, int n, void *(*f)(void*))
+void create_thread(coder_t **coders, int n, void *(*f)(void*))
 {
     int i;
 
     i = 0;
     while (i < n)
     {
-        struct timeval t;
-        gettimeofday(&t, NULL);
-        coders[i]->id = i + 1;
-        coders[i]->data->time = t;
+        coders[i]->data->time = get_time();
         pthread_create(&coders[i]->thread_id, NULL, f, coders[i]);
         i++;
     }
+}
+void join_thread(coder_t **coders, int n)
+{
+    int i;
+
     i = 0;
     while (i < n)
-    {
-        pthread_join(coders[i]->thread_id, NULL);
-        i++;
-    }
+        join_thread(coders[i++], NULL);
 }
+

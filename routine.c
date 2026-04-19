@@ -55,46 +55,36 @@ void do_refactor(coder_t *coder)
     usleep(coder->data->time_to_refactor * 1000);
     pthread_mutex_unlock(&coder->data->mutex);
 }
-void left_right(coder_t *coder, int n)
+
+void task(coder_t *coder)
 {
-    if (n % 2 == 0)
+    dongle_t *first;
+    dongle_t *second;
+
+    if (coder->left_d < coder->right_d)
     {
-        take_dongle(coder->right_d, coder);
-        printf("%ld %d has taken a dongle\n", time_task(coder->data->time), n);
-        take_dongle(coder->left_d, coder);
-        printf("%ld %d has taken a dongle\n", time_task(coder->data->time), n);
+        first = coder->left_d;
+        second = coder->right_d;
     }
     else
     {
-        take_dongle(coder->left_d, coder);
-        printf("%ld %d has taken a dongle\n", time_task(coder->data->time), n);
-        take_dongle(coder->right_d, coder);
-        printf("%ld %d has taken a dongle\n", time_task(coder->data->time), n);
+        first = coder->right_d;
+        second = coder->left_d;
     }
-}
-void *task(void *args)
-{
-    coder_t *coder = (coder_t *)args;
 
-    left_right(coder, coder->id);
-    printf("%ld %d is compiling\n", time_task(coder->data->time), coder->id);
-    usleep(coder->data->time_to_compile * 1000);
-    coder->time_burnout = get_time();
-    
-    coder->left_d->cooldown_time = get_time();
-    coder->left_d->head = delete_value(coder->left_d->head, coder);
+    take_dongle(first, coder);
 
-    coder->right_d->cooldown_time = get_time();
-    coder->right_d->head = delete_value(coder->right_d->head, coder);
+    take_dongle(second, coder);
 
-    pthread_cond_broadcast(&coder->left_d->cond);
-    pthread_cond_broadcast(&coder->right_d->cond);
+    pthread_mutex_lock(&first->dongle_mutex);
+    first->cooldown_time = get_time();
+    first->head = delete_value(first->head, coder->id);
+    pthread_cond_broadcast(&first->cond);
+    pthread_mutex_unlock(&first->dongle_mutex);
 
-    pthread_mutex_unlock(&coder->left_d->dongle_mutex);
-    pthread_mutex_unlock(&coder->right_d->dongle_mutex);
-
-    do_debug(coder);
-    do_refactor(coder);
-
-    return NULL;
+    pthread_mutex_lock(&second->dongle_mutex);
+    second->cooldown_time = get_time();
+    second->head = delete_value(second->head, coder->id);
+    pthread_cond_broadcast(&second->cond);
+    pthread_mutex_unlock(&second->dongle_mutex);
 }

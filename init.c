@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ikabboud <ikabboud@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/16 18:23:29 by ikabboud          #+#    #+#             */
+/*   Updated: 2026/04/19 01:31:18 by ikabboud         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
 void free_coders(coder_t **coders, int n)
@@ -50,8 +62,10 @@ dongle_t **create_dongles(int n)
 {
     dongle_t **dongles;
     int i;
+    node_t *head;
     
-    dongles = malloc(sizeof(dongle_t*) * n);
+    head = NULL;
+    dongles = malloc(sizeof(dongle_t *) * n);
     if (!dongles)
         return (NULL);
     i = 0;
@@ -63,10 +77,13 @@ dongle_t **create_dongles(int n)
             free_dongles(dongles, i);
             return (NULL);
         }
-
         dongles[i]->id = i;
+        dongles[i]->head = head;
+        pthread_mutex_init(&dongles[i]->dongle_mutex, NULL);
+        pthread_cond_init(&dongles[i]->cond, NULL);
+        
         i++;
     }
-
+    
     return (dongles);
 }

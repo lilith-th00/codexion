@@ -1,16 +1,31 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   thread.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ikabboud <ikabboud@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/16 18:23:07 by ikabboud          #+#    #+#             */
+/*   Updated: 2026/04/18 23:10:49 by ikabboud         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
-void create_thread(coder_t **coders, int n, void *(*f)(void*))
+void create_thread(coder_t **coders, int n, void *task)
 {
     int i;
+
 
     i = 0;
     while (i < n)
     {
         coders[i]->data->time = get_time();
-        pthread_create(&coders[i]->thread_id, NULL, f, coders[i]);
+        pthread_create(&coders[i]->thread_id, NULL, task, coders[i]);
         i++;
     }
+    //pthread_create(&data->minitor_t, NULL, monitor, coders);
+    
 }
 void join_thread(coder_t **coders, int n)
 {
@@ -18,6 +33,7 @@ void join_thread(coder_t **coders, int n)
 
     i = 0;
     while (i < n)
-        join_thread(coders[i++], NULL);
+        pthread_join(coders[i++]->thread_id, NULL);
+    //pthread_join(data->minitor_t, NULL);
 }
 

@@ -2,7 +2,8 @@ NAME = codexion
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -pthread
 
-OBJ = codexion.o init.o parsing.o routine.o thread.o
+OBJ = codexion.o init.o parsing.o routine.o thread.o utils.o \
+		monitor.o scheduler.o
 
 all: $(NAME)
 

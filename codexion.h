@@ -25,6 +25,7 @@ typedef struct data_s
     int order;
     int n_compiles;
     long time;
+    pthread_mutex_t mutex;
     pthread_t minitor_t; //get_time() reference dyal ga3 coders
 } data_t;
 
@@ -71,6 +72,8 @@ node_t *insert_tail(node_t *head, coder_t *coder);
 node_t *delete_value(node_t *head, coder_t *coder);
 int fifo(coder_t *coder, node_t *head);
 
+
+void print_list(node_t *head);
 
 
 

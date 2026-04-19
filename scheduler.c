@@ -19,25 +19,12 @@ void print_list(node_t *head)
     node = head;
     while (node)
     {
-        //printf("%d\n", node->coder->id);
+        printf("%d\n", node->coder->id);
         node = node->next;
     }
 }
 node_t *insert_tail(node_t *head, coder_t *coder)
 {
-    node_t *tmp = head;
-
-    // 🔍 check if already exists + find last node
-    while (tmp)
-    {
-        if (tmp->coder->id == coder->id)
-            return head; // already in list
-
-        if (!tmp->next)
-            break;
-        tmp = tmp->next;
-    }
-
     node_t *new = create_node(coder);
     if (!new)
         return head;
@@ -45,38 +32,41 @@ node_t *insert_tail(node_t *head, coder_t *coder)
     if (!head)
         return new;
 
+    node_t *tmp = head;
+
+    while (tmp->next)
+    {
+        if (tmp->coder && tmp->coder->id == coder->id)
+            return head;
+        tmp = tmp->next;
+    }
+    if (tmp->coder && tmp->coder->id == coder->id)
+        return head;
+
     tmp->next = new;
     print_list(head);
-
     return head;
 }
 node_t *delete_value(node_t *head, coder_t *coder)
 {
-    node_t *tmp = head;
-    node_t *prev = NULL;
+    node_t *tmp;
 
-    while (tmp)
+    if (!head)
+        return (NULL);
+
+    if(head->coder->id == coder->id)
     {
-        if (tmp->coder->id == coder->id)
-        {
-            if (prev)
-                prev->next = tmp->next;
-            else
-                head = tmp->next;
-
-            //free(tmp);
-            return head;
-        }
-        prev = tmp;
-        tmp = tmp->next;
+        tmp = head->next;
+        free(head);
+        return (tmp);
     }
-    return head;
+        
+    return (head);
 }
 int fifo(coder_t *coder, node_t *head)
 {
-    if (!head)
+    if (!head || !head->coder)
         return (0);
-    if (head->coder->id == coder->id)
-        return (1);
-    return (0);
+
+    return (head->coder->id == coder->id);
 }

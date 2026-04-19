@@ -6,7 +6,7 @@
 /*   By: ikabboud <ikabboud@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/16 18:23:39 by ikabboud          #+#    #+#             */
-/*   Updated: 2026/04/18 16:40:43 by ikabboud         ###   ########.fr       */
+/*   Updated: 2026/04/19 16:42:12 by ikabboud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,4 +47,5 @@ void store_values(data_t *data, char **av)
     data->scheduler = ft_strdup(av[8]);
     data->n_compiles = 0;
     data->order = 0;
+    pthread_mutex_init(&data->mutex, NULL);
 }

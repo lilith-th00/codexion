@@ -72,17 +72,16 @@ void task(coder_t *coder)
         second = coder->left_d;
     }
 
-    take_dongle(first, coder);
+    take_dongle(first, coder);   
+    take_dongle(second, coder);  
 
-    take_dongle(second, coder);
+    do_compile(coder);
 
-    pthread_mutex_lock(&first->dongle_mutex);
     first->cooldown_time = get_time();
     first->head = delete_value(first->head, coder->id);
     pthread_cond_broadcast(&first->cond);
     pthread_mutex_unlock(&first->dongle_mutex);
 
-    pthread_mutex_lock(&second->dongle_mutex);
     second->cooldown_time = get_time();
     second->head = delete_value(second->head, coder->id);
     pthread_cond_broadcast(&second->cond);

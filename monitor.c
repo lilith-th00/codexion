@@ -1,30 +1,47 @@
 #include "codexion.h"
 
-void *monitor(void *args)
+int safe_stop(coder_t **coders, int n)
 {
-    int n;
     int i;
-    int time_bur;
-    coder_t **coders = (coder_t **)args;
+    int flag;
 
-    n = coders[0]->data->number_of_coders;
-    time_bur = coders[0]->data->time_to_burnout;
     while (1)
     {
         i = 0;
         while (i < n)
         {
-            if ((get_time() - coders[i]->time_burnout) >= time_bur && coders[i]->time_burnout != 0)
+            pthread_mutex_lock(&coders[i]->data->mutex);
+            
+            flag = coders[i]->data->flag;
+            if(flag == n)
             {
-                printf("coder %d now %ld last compile %ld\n", coders[i]->id, get_time() ,coders[i]->time_burnout);
-                usleep(10 * 1000);
-                printf("%ld %d burned out\n", time_task(coders[i]->data->time), coders[i]->id);
-                exit(1);
+                pthread_mutex_unlock(&coders[i]->data->mutex);
+                return (1);
             }
-            else if (coders[i]->data->n_compiles == coders[i]->data->number_of_compiles_required * n)
-                exit(1);
+             
+            if (get_time() - coders[i]->last_compile >= coders[i]->data->time_to_burnout && (coders[i]->last_compile != 0 || n == 1))
+            {
+                usleep(50);
+                printf("%ld %d burned out\n", time_task(coders[i]->data->time), coders[i]->id);
+                pthread_mutex_unlock(&coders[i]->data->mutex);
+                return (1);
+            }
+            pthread_mutex_unlock(&coders[i]->data->mutex);
             i++;
         }
     }
+}
+
+void *monitor(void *args)
+{
+    int num_coders;
+
+    coder_t **coders = (coder_t **)args;
+    pthread_mutex_lock(&coders[0]->data->mutex);
+    num_coders = coders[0]->data->number_of_coders;
+    pthread_mutex_unlock(&coders[0]->data->mutex);
+    if (safe_stop(coders, num_coders) == 1)
+        return (NULL);
     return (NULL);
 }
+

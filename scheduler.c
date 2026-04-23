@@ -63,10 +63,43 @@ node_t *delete_value(node_t *head, coder_t *coder)
         
     return (head);
 }
-int fifo(coder_t *coder, node_t *head)
+int fifo_edf(coder_t *coder, node_t *head)
 {
     if (!head || !head->coder)
         return (0);
 
     return (head->coder->id == coder->id);
+}
+node_t *insert_sorted(node_t *head, coder_t *coder)
+{
+    node_t *tmp;                                                                                    
+    node_t *node;
+    node_t *ex_node;
+
+    if (head)
+    {
+        tmp = head;
+        while (tmp->next)
+        { 
+            if (tmp->coder->id == coder->id)
+                return (head);
+            tmp = tmp->next;
+        }
+    }
+    node = create_node(coder);
+    if (!head)
+        return (node);
+    tmp = head;
+    while (tmp->next && tmp->coder->last_compile < coder->last_compile)
+    {
+        ex_node = tmp;
+        tmp = tmp->next;
+    }
+    if (tmp->next)
+    {
+        ex_node->next = node;
+        node->next = tmp;
+    }
+    print_list(head);
+    return (head);
 }

@@ -6,7 +6,7 @@
 /*   By: ikabboud <ikabboud@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/16 18:23:29 by ikabboud          #+#    #+#             */
-/*   Updated: 2026/04/19 01:31:18 by ikabboud         ###   ########.fr       */
+/*   Updated: 2026/04/23 10:21:28 by ikabboud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,10 @@ coder_t **create_coders(data_t *data, dongle_t **dongles)
         coders[i]->id = i + 1;
         coders[i]->left_d = dongles[(i + n - 1) % n];
         coders[i]->right_d = dongles[i];
-        coders[i++]->data = data;
+        coders[i]->data = data;
+        coders[i]->n_compiles = 0;
+        coders[i]->stop = 0;
+        coders[i++]->last_compile = get_time();
     }
     return (coders);
 }

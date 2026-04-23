@@ -6,7 +6,7 @@
 /*   By: ikabboud <ikabboud@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/16 18:23:39 by ikabboud          #+#    #+#             */
-/*   Updated: 2026/04/19 16:42:12 by ikabboud         ###   ########.fr       */
+/*   Updated: 2026/04/23 10:23:15 by ikabboud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ int valid_not(int ac, char **av)
             return (0);
         i++;
     }
-    if (strcmp(av[ac-1], "fifo") != 0  || !strcmp(av[ac-1], "edf") != 0)
+    if (strcmp(av[ac-1], "fifo") != 0  && strcmp(av[ac-1], "edf") != 0)
         return (0);
     return (1);
 }
@@ -45,7 +45,6 @@ void store_values(data_t *data, char **av)
     data->number_of_compiles_required = atoi(av[6]);
     data->dongle_cooldown = atoi(av[7]);
     data->scheduler = ft_strdup(av[8]);
-    data->n_compiles = 0;
-    data->order = 0;
+    data->flag = 0;
     pthread_mutex_init(&data->mutex, NULL);
 }

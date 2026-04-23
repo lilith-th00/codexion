@@ -6,24 +6,24 @@
 /*   By: ikabboud <ikabboud@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/16 18:22:37 by ikabboud          #+#    #+#             */
-/*   Updated: 2026/04/18 23:06:02 by ikabboud         ###   ########.fr       */
+/*   Updated: 2026/04/23 10:26:43 by ikabboud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-void helper(coder_t **coders)
+void helper(coder_t **coders, data_t *data)
 {
     int n;
 
     n = coders[0]->data->number_of_coders;
-    create_thread(coders, n, task);
-    join_thread(coders, n);
+    create_thread(coders, n, task, data, monitor);
+    join_thread(coders, n, data);
 }
 int main(int ac, char **av)
 {
     data_t *data;
-    coder_t **coders;   
+    coder_t **coders; 
     dongle_t **dongles;
 
     if (ac != 9)
@@ -41,5 +41,6 @@ int main(int ac, char **av)
     }
     dongles = create_dongles(data->number_of_coders);
     coders = create_coders(data, dongles);
-    helper(coders);
+    helper(coders, data);
+    return (0);
 }

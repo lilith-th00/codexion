@@ -6,7 +6,7 @@
 /*   By: ikabboud <ikabboud@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/16 18:22:57 by ikabboud          #+#    #+#             */
-/*   Updated: 2026/04/19 17:30:42 by ikabboud         ###   ########.fr       */
+/*   Updated: 2026/04/23 14:43:41 by ikabboud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,25 +21,32 @@ long time_task(long time)
     ms = (t2.tv_sec * 1000) + (t2.tv_usec / 1000);
     return (ms - time);
 }
+
+node_t *create(node_t *head, coder_t *coder)
+{
+    if (strcmp(coder->data->scheduler, "fifo") == 0)
+        return (insert_tail(head, coder));
+    else
+        return (insert_sorted(head, coder));
+}
 void take_dongle(dongle_t *d, coder_t *coder)
 {
+    long ms;
+    long time;
+    
     pthread_mutex_lock(&d->dongle_mutex);
-
-    d->head = insert_tail(d->head, coder);
-
-    while (!fifo(coder, d->head))
-    {
-        
+    d->head = create(d->head, coder);
+    while (!fifo_edf(coder, d->head))
         pthread_cond_wait(&d->cond, &d->dongle_mutex);
-    }
-    long time = get_time();
-    long ms = time - d->cooldown_time;
+    time = get_time();
+    pthread_mutex_lock(&coder->data->mutex);
+    ms = time - d->cooldown_time;
 
     if (ms < coder->data->dongle_cooldown)
-    {
         usleep((coder->data->dongle_cooldown - ms) * 1000);
-    }
-    //pthread_mutex_unlock(&d->dongle_mutex);
+    printf("%ld %d has taken a dongle\n", time_task(coder->data->time), coder->id);
+    pthread_mutex_unlock(&coder->data->mutex);
+    
 }
 void do_debug(coder_t *coder)
 {
@@ -55,35 +62,80 @@ void do_refactor(coder_t *coder)
     usleep(coder->data->time_to_refactor * 1000);
     pthread_mutex_unlock(&coder->data->mutex);
 }
-
-void task(coder_t *coder)
+void do_compile(coder_t *coder)
 {
+    pthread_mutex_lock(&coder->data->mutex);
+    printf("%ld %d is compiling\n", time_task(coder->data->time), coder->id);
+    printf("finn wsalt %d, coder %d \n", coder->n_compiles, coder->id);
+    usleep(coder->data->time_to_compile * 1000);
+    pthread_mutex_unlock(&coder->data->mutex);
+}
+void *task(void *args)
+{
+    coder_t *coder;
     dongle_t *first;
     dongle_t *second;
-
-    if (coder->left_d < coder->right_d)
+    
+    coder = (coder_t *)args;
+    while (1)
     {
-        first = coder->left_d;
-        second = coder->right_d;
+        pthread_mutex_lock(&coder->data->mutex);
+        if (coder->n_compiles >= coder->data->number_of_compiles_required)
+        {
+            coder->data->flag += 1;
+            pthread_mutex_unlock(&coder->data->mutex);
+            return (NULL);
+        }
+        pthread_mutex_unlock(&coder->data->mutex);
+        if (coder->id % 2 != 0)
+        {
+            first = coder->left_d;
+            second = coder->right_d;
+        }
+        else
+        {
+            first = coder->right_d;
+            second = coder->left_d;
+        }
+        take_dongle(first, coder);   
+        take_dongle(second, coder);
+        do_compile(coder);
+        
+        pthread_mutex_lock(&coder->data->mutex);
+        coder->n_compiles += 1;
+        coder->last_compile = get_time();
+        pthread_mutex_unlock(&coder->data->mutex);
+        first->cooldown_time = get_time();
+        first->head = delete_value(first->head, coder);
+        pthread_cond_broadcast(&first->cond);
+        pthread_mutex_unlock(&first->dongle_mutex);
+        second->cooldown_time = get_time();
+        second->head = delete_value(second->head, coder);
+        pthread_cond_broadcast(&second->cond);
+        pthread_mutex_unlock(&second->dongle_mutex);
+    
+        do_debug(coder);
+        do_refactor(coder);
     }
-    else
-    {
-        first = coder->right_d;
-        second = coder->left_d;
-    }
-
-    take_dongle(first, coder);   
-    take_dongle(second, coder);  
-
-    do_compile(coder);
-
-    first->cooldown_time = get_time();
-    first->head = delete_value(first->head, coder->id);
-    pthread_cond_broadcast(&first->cond);
-    pthread_mutex_unlock(&first->dongle_mutex);
-
-    second->cooldown_time = get_time();
-    second->head = delete_value(second->head, coder->id);
-    pthread_cond_broadcast(&second->cond);
-    pthread_mutex_unlock(&second->dongle_mutex);
 }
+
+
+
+//safe check : check is stop wach 
+/*
+    int check_stop()
+    {
+        int i;
+        lock
+        i = stop;  //wahed variable f data | monitor!
+        unlock
+        reutrn i;
+    }
+
+    itn safe_stop() //monitor burn and all_compile
+    {
+        lock
+        stop =  1;
+        unlock
+    }
+*/

@@ -45,3 +45,35 @@ void *monitor(void *args)
     return (NULL);
 }
 
+
+#include "codexion.h"
+
+void *monitor(void *arg)
+{
+    t_data *data = (t_data *)arg;
+    int i;
+
+    while (!data->stop)
+    {
+        i = 0;
+        while (i < data->number_of_coders)
+        {
+            if (get_time() - data->coders[i].last_compile
+                > data->time_to_burnout)
+            {
+                pthread_mutex_lock(&data->print_mutex);
+                printf("%ld %d burned out\n",
+                    get_time() - data->start_time,
+                    data->coders[i].id);
+                pthread_mutex_unlock(&data->print_mutex);
+
+                data->stop = 1;
+                return NULL;
+            }
+            i++;
+        }
+        usleep(1000);
+    }
+    return NULL;
+}
+

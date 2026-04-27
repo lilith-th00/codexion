@@ -77,3 +77,121 @@ void *monitor(void *arg)
     return NULL;
 }
 
+
+//
+
+#include "codexion.h"
+
+node_t *create_node(coder_t *coder)
+{
+    node_t *node;
+
+    node = malloc(sizeof(node_t));
+    if (!node)
+        return (NULL);
+    node->coder = coder;
+    node->next = NULL;
+    return (node);
+}
+
+void print_list(node_t *head)
+{
+    while (head)
+    {
+        printf("%d\n", head->coder->id);
+        head = head->next;
+    }
+}
+
+node_t *insert_tail(node_t *head, coder_t *coder)
+{
+    node_t *new = create_node(coder);
+    node_t *tmp;
+
+    if (!new)
+        return (head);
+
+    if (!head)
+        return (new);
+
+    tmp = head;
+    while (tmp->next)
+    {
+        if (tmp->coder && tmp->coder->id == coder->id)
+            return (head);
+        tmp = tmp->next;
+    }
+    if (tmp->coder && tmp->coder->id == coder->id)
+        return (head);
+
+    tmp->next = new;
+    return (head);
+}
+
+node_t *delete_value(node_t *head, coder_t *coder)
+{
+    node_t *tmp = head;
+    node_t *prev = NULL;
+
+    while (tmp)
+    {
+        if (tmp->coder->id == coder->id)
+        {
+            if (!prev)
+                head = tmp->next;
+            else
+                prev->next = tmp->next;
+
+            free(tmp);
+            return (head);
+        }
+        prev = tmp;
+        tmp = tmp->next;
+    }
+    return (head);
+}
+
+int fifo_edf(coder_t *coder, node_t *head)
+{
+    if (!head || !head->coder)
+        return (0);
+    return (head->coder->id == coder->id);
+}
+
+node_t *insert_sorted(node_t *head, coder_t *coder)
+{
+    node_t *node = create_node(coder);
+    node_t *tmp = head;
+    node_t *prev = NULL;
+
+    if (!node)
+        return (head);
+
+    // duplicate check
+    while (tmp)
+    {
+        if (tmp->coder->id == coder->id)
+            return (head);
+        tmp = tmp->next;
+    }
+
+    // insertion f début
+    if (!head || coder->last_compile < head->coder->last_compile)
+    {
+        node->next = head;
+        return (node);
+    }
+
+    tmp = head;
+    while (tmp && tmp->coder->last_compile < coder->last_compile)
+    {
+        prev = tmp;
+        tmp = tmp->next;
+    }
+
+    prev->next = node;
+    node->next = tmp;
+
+    return (head);
+}
+

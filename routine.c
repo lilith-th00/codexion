@@ -305,3 +305,137 @@ void *task(void *args)
         unlock
     }
 */
+
+
+*/
+void *task(void *args)
+{
+    coder_t *coder = (coder_t *)args;
+    dongle_t *first;
+    dongle_t *second;
+    int num;
+    int i = 0;
+
+    pthread_mutex_lock(&coder->data->mutex);
+        if (coder->data->stop)
+        {
+            pthread_mutex_unlock(&coder->data->mutex);
+            return NULL;
+        }
+    pthread_mutex_unlock(&coder->data->mutex);
+    
+    pthread_mutex_lock(&coder->data->mutex);
+    num = coder->data->number_of_compiles_required;
+    pthread_mutex_unlock(&coder->data->mutex);
+
+    while (i < num)
+    {
+        pthread_mutex_lock(&coder->data->mutex);
+        if (coder->data->stop)
+        {
+            pthread_mutex_unlock(&coder->data->mutex);
+            return NULL;
+        }
+        pthread_mutex_unlock(&coder->data->mutex);
+
+        if (coder->id % 2 != 0)
+        {
+            first = coder->left_d;
+            second = coder->right_d;
+        }
+        else
+        {
+            first = coder->right_d;
+            second = coder->left_d;
+        }
+
+        take_dongle(first, coder);
+        pthread_mutex_lock(&coder->data->mutex);
+        if (coder->data->stop)
+        {
+            pthread_mutex_unlock(&coder->data->mutex);
+            return NULL;
+        }
+        pthread_mutex_unlock(&coder->data->mutex);
+        take_dongle(second, coder);
+        
+        pthread_mutex_lock(&coder->data->mutex);
+        if (coder->data->stop)
+        {
+            pthread_mutex_unlock(&coder->data->mutex);
+            return NULL;
+        }
+        pthread_mutex_unlock(&coder->data->mutex);
+        
+        
+
+        do_compile(coder);
+        
+        pthread_mutex_lock(&coder->coder_mutex);
+        coder->last_compile = get_time();
+        pthread_mutex_unlock(&coder->coder_mutex);
+        
+        pthread_mutex_lock(&coder->coder_mutex);
+        coder->n_compiles++;
+        pthread_mutex_unlock(&coder->coder_mutex);
+        
+        pthread_mutex_lock(&coder->data->mutex);
+        if (coder->data->stop)
+        {
+            pthread_mutex_unlock(&coder->data->mutex);
+            return NULL;
+        }
+        pthread_mutex_unlock(&coder->data->mutex);
+        
+        first->cooldown_time = get_time();
+        first->head = delete_value(first->head, coder);
+        pthread_cond_broadcast(&first->cond);
+        pthread_mutex_unlock(&first->dongle_mutex);
+        
+        second->cooldown_time = get_time();
+        second->head = delete_value(second->head, coder);
+        pthread_cond_broadcast(&second->cond);
+        pthread_mutex_unlock(&second->dongle_mutex);
+        pthread_mutex_lock(&coder->data->mutex);
+        if (coder->data->stop)
+        {
+            pthread_mutex_unlock(&coder->data->mutex);
+            return NULL;
+        }
+        pthread_mutex_unlock(&coder->data->mutex);
+        do_debug(coder);
+        
+        pthread_mutex_lock(&coder->data->mutex);
+        if (coder->data->stop)
+        {
+            pthread_mutex_unlock(&coder->data->mutex);
+            return NULL;
+        }
+        pthread_mutex_unlock(&coder->data->mutex);
+        do_refactor(coder);
+        pthread_mutex_lock(&coder->data->mutex);
+        if (coder->data->stop)
+        {
+            pthread_mutex_unlock(&coder->data->mutex);
+            return NULL;
+        }
+        pthread_mutex_unlock(&coder->data->mutex);
+
+        i++;
+    }
+    pthread_mutex_lock(&coder->data->mutex);
+    coder->data->flag++;
+    pthread_mutex_unlock(&coder->data->mutex);
+    pthread_mutex_lock(&coder->data->mutex);
+        if (coder->data->stop)
+        {
+            pthread_mutex_unlock(&coder->data->mutex);
+            return NULL;
+        }
+    pthread_mutex_unlock(&coder->data->mutex);
+    
+    return NULL;
+}
+
+
+
